@@ -37,3 +37,15 @@ class Player:
 
     def increase_level(self):
         self.level += 1
+
+    def move(self, direction):
+        if direction == "n":
+            return room.Room.get_room(self.n_to)
+        elif direction == "s":
+            return room.Room.get_room(self.s_to)
+        elif direction == "e":
+            return room.Room.get_room(self.e_to)
+        elif direction == "w":
+            return room.Room.get_room(self.w_to)
+        else:
+            return "Invalid direction. Please try again."
