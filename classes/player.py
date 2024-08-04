@@ -2,13 +2,14 @@ import room
 
 
 class Player:
-    def __init__(self, name, dexterity, intelligence, wisdom, experience, level, items=[]):
+    def __init__(self, name, dexterity, intelligence, wisdom, experience, level, location, items=[]):
         self.name = name
         self.dex = dexterity
         self.int = intelligence
         self.wis = wisdom
         self.exp = experience
         self.level = level
+        self.location = location
         self.items = items
 
     def __str__(self):
@@ -22,6 +23,9 @@ class Player:
 
     def get_items(self):
         return self.items
+
+    def get_item_count(self):
+        return len(self.items)
 
     def get_name(self):
         return self.name
@@ -40,12 +44,12 @@ class Player:
 
     def move(self, direction):
         if direction == "n":
-            return room.Room.get_room(self.n_to)
+            self.location = self.location.n_to
         elif direction == "s":
-            return room.Room.get_room(self.s_to)
+            self.location = self.location.s_to
         elif direction == "e":
-            return room.Room.get_room(self.e_to)
+            self.location = self.location.e_to
         elif direction == "w":
-            return room.Room.get_room(self.w_to)
+            self.location = self.location.w_to
         else:
             return "Invalid direction. Please try again."
