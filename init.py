@@ -1,7 +1,7 @@
-from classes import room
+from classes import item, room
 
 
-def init():
+def init_rooms():
     # Create rooms
     rooms = {
         "whispering_willows": room.Room("Whispering Willows",
@@ -62,3 +62,44 @@ def init():
 
     return rooms
 
+
+def init_items():
+
+    # Initialize items
+    items = {
+        "enchanted_flute": item.Item("Enchanted Flute",
+                                     "A slender flute that plays haunting melodies when the wind blows.", 2, 0, 0, 10),
+
+        "prismatic_lens": item.Item("Prismatic Lens",
+                                    "A multifaceted lens that refracts light into a dazzling rainbow.", 0, 2, 0, 10),
+
+        "magical_stylus": item.Item("Magical Stylus",
+                                    "A silver stylus that draws glowing runes in the air when used.", 0, 0, 2, 10),
+
+        "vial_of_glowing_water": item.Item("Vial of Glowing Water",
+                                           "A glass vial filled with water that glows with an inner light.", 1, 1, 1,
+                                           10),
+
+        "weathered_stone_tablet": item.Item("Weathered Stone Tablet",
+                                            "A stone tablet etched with ancient runes and symbols.", 1, 1, 1, 10),
+
+        "celestial_map": item.Item("Celestial Map",
+                                   "A map of the stars that reveals hidden constellations.", 1, 1, 1, 10),
+
+        "resonance_crystal": item.Item("Resonance Crystal",
+                                       "A crystal that hums with a mysterious energy when touched.", 1, 1, 1, 10),
+    }
+
+    return items
+
+
+def add_items_to_rooms(rooms, items):
+
+    # Add items to rooms
+    rooms["whispering_willows"].add_item(items["enchanted_flute"])
+    rooms["mosaic_menagerie"].add_item(items["prismatic_lens"])
+    rooms["runic_rotunda"].add_item(items["magical_stylus"])
+    rooms["forgotten_fountain"].add_item(items["vial_of_glowing_water"])
+    rooms["sunken_sanctuary"].add_item(items["weathered_stone_tablet"])
+    rooms["overgrown_observatory"].add_item(items["celestial_map"])
+    rooms["echoing_arboretum"].add_item(items["resonance_crystal"])
