@@ -1,7 +1,9 @@
-from classes import item, room
+from classes import item, player, room
+
+import random
 
 
-def init_rooms():
+def rooms():
     # Create rooms
     rooms = {
         "whispering_willows": room.Room("Whispering Willows",
@@ -27,8 +29,11 @@ def init_rooms():
 
         "echoing_arboretum": room.Room("Echoing Arboretum", "A vast hall filled with the sound of rustling leaves."),
     }
+    
+    return rooms
 
-    # Connect rooms
+
+def assign_room_connections(rooms):
     rooms["whispering_willows"].e_to = rooms["mosaic_menagerie"]
     rooms["whispering_willows"].s_to = rooms["verdant_vestibule"]
 
@@ -60,10 +65,8 @@ def init_rooms():
     rooms["echoing_arboretum"].w_to = rooms["overgrown_observatory"]
     rooms["echoing_arboretum"].n_to = rooms["forgotten_fountain"]
 
-    return rooms
 
-
-def init_items():
+def items():
 
     # Initialize items
     items = {
@@ -93,13 +96,26 @@ def init_items():
     return items
 
 
-def add_items_to_rooms(rooms, items):
-
-    # Add items to rooms
+def assign_room_items(rooms, items):
     rooms["whispering_willows"].add_item(items["enchanted_flute"])
     rooms["mosaic_menagerie"].add_item(items["prismatic_lens"])
     rooms["runic_rotunda"].add_item(items["magical_stylus"])
     rooms["forgotten_fountain"].add_item(items["vial_of_glowing_water"])
     rooms["sunken_sanctuary"].add_item(items["weathered_stone_tablet"])
     rooms["overgrown_observatory"].add_item(items["celestial_map"])
-    rooms["echoing_arboretum"].add_item(items["resonance_crystal"])
+    rooms['echoing_arboretum'].add_item(items['resonance_crystal'])
+
+
+# Randomize player stats, they don't matter for anyway
+def randomize_player_stats():
+    dex = random.randint(1, 10)
+    int = random.randint(1, 10)
+    wis = random.randint(1, 10)
+    return dex, int, wis
+
+
+def init_player():
+    name = input("Hail Adventurer, please enter your name: ")
+    dex, int, wis = randomize_player_stats()
+    player1 = player.Player(name, dex, int, wis, 0, 1, rooms()["verdant_vestibule"], [])
+    return player1
