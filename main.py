@@ -172,20 +172,20 @@ class Room:
         print(f"Attempting to move player {self.player.name} to the {direction}")  # Debug print
         connections = self.get_connections()
         if direction in connections:
-            if direction == 'north':
+            if direction == 'north' and self.n_to:
                 self.n_to.set_player(self.player)
                 self.player.current_room = self.n_to
-            elif direction == 'south':
+            elif direction == 'south' and self.s_to:
                 self.s_to.set_player(self.player)
                 self.player.current_room = self.s_to
-            elif direction == 'east':
+            elif direction == 'east' and self.e_to:
                 self.e_to.set_player(self.player)
                 self.player.current_room = self.e_to
-            elif direction == 'west':
+            elif direction == 'west' and self.w_to:
                 self.w_to.set_player(self.player)
                 self.player.current_room = self.w_to
-            self.set_player(None)
             print(f"Player moved to {self.player.current_room.name}")  # Debug print
+            self.set_player(None)
         else:
             print("You can't go that way.")
 
@@ -216,7 +216,7 @@ def init_rooms():
     }
 
 
-def assign_room_connections(rooms):
+def init_room_connections(rooms):
     rooms["whispering_willows"].e_to = rooms["mosaic_menagerie"]
     rooms["whispering_willows"].s_to = rooms["verdant_vestibule"]
 
@@ -262,7 +262,7 @@ def init_items():
     return items
 
 
-def assign_room_items(rooms, items):
+def init_room_items(rooms, items):
     rooms["whispering_willows"].add_item(items["enchanted_flute"])
     rooms["mosaic_menagerie"].add_item(items["prismatic_lens"])
     rooms["runic_rotunda"].add_item(items["magical_stylus"])
@@ -272,17 +272,16 @@ def assign_room_items(rooms, items):
     rooms['echoing_arboretum'].add_item(items['resonance_crystal'])
 
 
-def randomize_player_stats():
+def init_player_stats():
     dex = random.randint(1, 10)
     int = random.randint(1, 10)
     wis = random.randint(1, 10)
     return dex, int, wis
 
 
-def init_player():
-    rooms = init_rooms()
+def init_player(rooms):
     starting_room = rooms["verdant_vestibule"]
-    dex, int, wis = randomize_player_stats()
+    dex, int, wis = init_player_stats()
     player1 = Player("Donald Trump", dex, int, wis, 0, 1, starting_room)
     starting_room.set_player(player1)
     return player1
@@ -290,10 +289,10 @@ def init_player():
 
 def main():
     rooms = init_rooms()
-    assign_room_connections(rooms)
+    init_room_connections(rooms)
     items = init_items()
-    assign_room_items(rooms, items)
-    player = init_player()
+    init_room_items(rooms, items)
+    player = init_player(rooms)
     print(player)
 
     starting_room = rooms["verdant_vestibule"]
@@ -304,7 +303,7 @@ def main():
         print("\nNo player in the starting room.")  # Debug print
 
     player.move('north')
-    print(player.current_room)
+    print(player.current_room.get_items())
 
 
 if __name__ == "__main__":
