@@ -5,18 +5,19 @@ import random
 
 
 # Classes
+
 class Color:
-    PURPLE = '\033[95m'
-    CYAN = '\033[96m'
-    DARKCYAN = '\033[36m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    BU = '\033[1m\033[4m'
-    END = '\033[0m'
+    PURPLE = "\033[95m"
+    CYAN = "\033[96m"
+    DARKCYAN = "\033[36m"
+    BLUE = "\033[94m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+    BU = "\033[1m\033[4m"
+    END = "\033[0m"
 
 
 @dataclass
@@ -43,7 +44,7 @@ class Player:
     wis: int
     exp: int
     level: int
-    current_room: 'Room'
+    current_room: "Room"
     items: List[Item] = field(default_factory=list)
 
     def move(self, direction):
@@ -51,22 +52,26 @@ class Player:
         self.current_room.move_player(direction)
 
     def __str__(self):
-        return (f"\n{Color.BU + self.name + Color.END}, "
-                f"{Color.BOLD + 'Lvl' + Color.END}: {Color.CYAN + str(self.level) + Color.END}"
-                f" {Color.BOLD + 'Exp' + Color.END}: {Color.GREEN + str(self.exp) + Color.END}\n"
-                f" {Color.BOLD + 'Backpack' + Color.END}: {self.items}\n"
-                f" {Color.BOLD + 'Dex' + Color.END}: {Color.YELLOW + str(self.dex) + Color.END}\n"
-                f" {Color.BOLD + 'Int' + Color.END}: {Color.BLUE + str(self.int) + Color.END}\n"
-                f" {Color.BOLD + 'Wis' + Color.END}: {Color.PURPLE + str(self.wis) + Color.END}")
+        return (
+            f"\n{Color.BU + self.name + Color.END}, "
+            f"{Color.BOLD + 'Lvl' + Color.END}: {Color.CYAN + str(self.level) + Color.END}"
+            f" {Color.BOLD + 'Exp' + Color.END}: {Color.GREEN + str(self.exp) + Color.END}\n"
+            f" {Color.BOLD + 'Backpack' + Color.END}: {self.items}\n"
+            f" {Color.BOLD + 'Dex' + Color.END}: {Color.YELLOW + str(self.dex) + Color.END}\n"
+            f" {Color.BOLD + 'Int' + Color.END}: {Color.BLUE + str(self.int) + Color.END}\n"
+            f" {Color.BOLD + 'Wis' + Color.END}: {Color.PURPLE + str(self.wis) + Color.END}"
+        )
 
     def __repr__(self):
-        return (f"\n{Color.BU + self.name + Color.END}, "
-                f"{Color.BOLD + 'Lvl' + Color.END}: {Color.CYAN + str(self.level) + Color.END}"
-                f" {Color.BOLD + 'Exp' + Color.END}: {Color.GREEN + str(self.exp) + Color.END}\n"
-                f" {Color.BOLD + 'Backpack' + Color.END}: {self.items}\n"
-                f" {Color.BOLD + 'Dex' + Color.END}: {Color.YELLOW + str(self.dex) + Color.END}\n"
-                f" {Color.BOLD + 'Int' + Color.END}: {Color.BLUE + str(self.int) + Color.END}\n"
-                f" {Color.BOLD + 'Wis' + Color.END}: {Color.PURPLE + str(self.wis) + Color.END}")
+        return (
+            f"\n{Color.BU + self.name + Color.END}, "
+            f"{Color.BOLD + 'Lvl' + Color.END}: {Color.CYAN + str(self.level) + Color.END}"
+            f" {Color.BOLD + 'Exp' + Color.END}: {Color.GREEN + str(self.exp) + Color.END}\n"
+            f" {Color.BOLD + 'Backpack' + Color.END}: {self.items}\n"
+            f" {Color.BOLD + 'Dex' + Color.END}: {Color.YELLOW + str(self.dex) + Color.END}\n"
+            f" {Color.BOLD + 'Int' + Color.END}: {Color.BLUE + str(self.int) + Color.END}\n"
+            f" {Color.BOLD + 'Wis' + Color.END}: {Color.PURPLE + str(self.wis) + Color.END}"
+        )
 
     def add_item(self, item):
         self.items.append(item)
@@ -104,10 +109,10 @@ class Player:
 class Room:
     name: str
     desc: str
-    n_to: Optional['Room'] = None
-    s_to: Optional['Room'] = None
-    e_to: Optional['Room'] = None
-    w_to: Optional['Room'] = None
+    n_to: Optional["Room"] = None
+    s_to: Optional["Room"] = None
+    e_to: Optional["Room"] = None
+    w_to: Optional["Room"] = None
     items: List[Item] = field(default_factory=list)
     player: Optional[Player] = None
 
@@ -154,13 +159,13 @@ class Room:
         return connections
 
     def has_connection(self, direction):
-        if direction == 'north' and self.n_to:
+        if direction == "north" and self.n_to:
             return True
-        elif direction == 'south' and self.s_to:
+        elif direction == "south" and self.s_to:
             return True
-        elif direction == 'east' and self.e_to:
+        elif direction == "east" and self.e_to:
             return True
-        elif direction == 'west' and self.w_to:
+        elif direction == "west" and self.w_to:
             return True
         return False
 
@@ -172,16 +177,16 @@ class Room:
         print(f"Attempting to move player {self.player.name} to the {direction}")  # Debug print
         connections = self.get_connections()
         if direction in connections:
-            if direction == 'north' and self.n_to:
+            if direction == "north" and self.n_to:
                 self.n_to.set_player(self.player)
                 self.player.current_room = self.n_to
-            elif direction == 'south' and self.s_to:
+            elif direction == "south" and self.s_to:
                 self.s_to.set_player(self.player)
                 self.player.current_room = self.s_to
-            elif direction == 'east' and self.e_to:
+            elif direction == "east" and self.e_to:
                 self.e_to.set_player(self.player)
                 self.player.current_room = self.e_to
-            elif direction == 'west' and self.w_to:
+            elif direction == "west" and self.w_to:
                 self.w_to.set_player(self.player)
                 self.player.current_room = self.w_to
             print(f"Player moved to {self.player.current_room.name}")  # Debug print
@@ -251,13 +256,62 @@ def init_room_connections(rooms):
 
 def init_items():
     items = {
-        "enchanted_flute": Item("Enchanted Flute", "A slender flute that plays haunting melodies when the wind blows.", 2, 0, 0, 10),
-        "prismatic_lens": Item("Prismatic Lens", "A multifaceted lens that refracts light into a dazzling rainbow.", 0, 2, 0, 10),
-        "magical_stylus": Item("Magical Stylus", "A silver stylus that draws glowing runes in the air when used.", 0, 0, 2, 10),
-        "vial_of_glowing_water": Item("Vial of Glowing Water", "A glass vial filled with water that glows with an inner light.", 1, 1, 1, 10),
-        "weathered_stone_tablet": Item("Weathered Stone Tablet", "A stone tablet etched with ancient runes and symbols.", 1, 1, 1, 10),
-        "celestial_map": Item("Celestial Map", "A map of the stars that reveals hidden constellations.", 1, 1, 1, 10),
-        "resonance_crystal": Item("Resonance Crystal", "A crystal that hums with a mysterious energy when touched.", 1, 1, 1, 10),
+        "enchanted_flute": Item(
+            "Enchanted Flute",
+            "A slender flute that plays haunting melodies when the wind blows.",
+            2,
+            0,
+            0,
+            10,
+        ),
+        "prismatic_lens": Item(
+            "Prismatic Lens",
+            "A multifaceted lens that refracts light into a dazzling rainbow.",
+            0,
+            2,
+            0,
+            10,
+        ),
+        "magical_stylus": Item(
+            "Magical Stylus",
+            "A silver stylus that draws glowing runes in the air when used.",
+            0,
+            0,
+            2,
+            10,
+        ),
+        "vial_of_glowing_water": Item(
+            "Vial of Glowing Water",
+            "A glass vial filled with water that glows with an inner light.",
+            1,
+            1,
+            1,
+            10,
+        ),
+        "weathered_stone_tablet": Item(
+            "Weathered Stone Tablet",
+            "A stone tablet etched with ancient runes and symbols.",
+            1,
+            1,
+            1,
+            10,
+        ),
+        "celestial_map": Item(
+            "Celestial Map",
+            "A map of the stars that reveals hidden constellations.",
+            1,
+            1,
+            1,
+            10,
+        ),
+        "resonance_crystal": Item(
+            "Resonance Crystal",
+            "A crystal that hums with a mysterious energy when touched.",
+            1,
+            1,
+            1,
+            10,
+        ),
     }
     return items
 
@@ -269,7 +323,7 @@ def init_room_items(rooms, items):
     rooms["forgotten_fountain"].add_item(items["vial_of_glowing_water"])
     rooms["sunken_sanctuary"].add_item(items["weathered_stone_tablet"])
     rooms["overgrown_observatory"].add_item(items["celestial_map"])
-    rooms['echoing_arboretum'].add_item(items['resonance_crystal'])
+    rooms["echoing_arboretum"].add_item(items["resonance_crystal"])
 
 
 def init_player_stats():
@@ -302,7 +356,7 @@ def main():
     else:
         print("\nNo player in the starting room.")  # Debug print
 
-    player.move('north')
+    player.move("north")
     print(player.current_room.get_items())
 
 
