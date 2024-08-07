@@ -5,7 +5,11 @@ import logging
 import random
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG, format=f'%(asctime)s [%(levelname)s] %(message)s')
+logging.basicConfig(
+    filename='game.log',
+    level=logging.DEBUG,
+    format='%(asctime)s [%(levelname)s] %(message)s'
+)
 
 
 # Classes
@@ -314,22 +318,32 @@ def main():
 
     player = init_player(rooms)
 
-    # Test player/room/item interactions
-    logging.debug(player.current_room)
-    logging.debug(f'Available connections: {player.current_room.get_connections()}')
-    logging.debug(f'Items in room: {player.current_room.get_items()}')
-    player.move("east")
-    logging.debug(player.current_room)
-    logging.debug(f'Available connections: {player.current_room.get_connections()}')
-    logging.debug(f'Items in room: {player.current_room.get_items()}')
-    player.add_item(player.current_room.get_items()[0])
-    logging.debug(f'Items in room: {player.current_room.get_items()}')
-    player.move("east")
-    logging.debug(player.current_room)
-    logging.debug(f'Available connections: {player.current_room.get_connections()}')
-    logging.debug(f'Items in room: {player.current_room.get_items()}')
-    player.add_item(player.current_room.get_items()[0])
-    print(player)
+    # Initialize game loop
+    logging.debug("Starting game loop")
+    while True:
+        print(f'{player}\n')
+        print(f'{player.current_room.name}: {player.current_room.desc}')
+        print(f"Available connections: {player.current_room.get_connections()}")
+        if len(player.current_room.get_items()) > 0:
+            print(f"Items in room: {player.current_room.get_items()}")
+        else:
+            print("There are no items in this room.")
+        action = input("What would you like to do? ")
+        if action in ["north", "south", "east", "west"]:
+            player.move(action)
+        elif action == "get":
+            item_name = input("Enter the name of the item you want to get: ")
+            for item in player.current_room.get_items():
+                if item.name == item_name:
+                    player.add_item(item)
+                    break
+            else:
+                print(f"There is no {item_name} in this room.")
+        elif action == "exit":
+            print("Exiting game. Goodbye!")
+            break
+        else:
+            print("I'm sorry, I don't understand that command.")
 
 
 if __name__ == "__main__":
