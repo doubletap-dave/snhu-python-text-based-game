@@ -1,11 +1,14 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+import logging
 import random
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, format=f'%(asctime)s [%(levelname)s] %(message)s')
 
 
 # Classes
-
 class Color:
     PURPLE = "\033[95m"
     CYAN = "\033[96m"
@@ -30,10 +33,13 @@ class Item:
     exp: int
 
     def __str__(self):
-        return f"{self.name}: '{self.desc}' >> DEX: {self.dex} - INT: {self.int} - WIS: {self.wis} - EXP: {self.exp}"
+        return f"{self.name}: '{self.desc}'"
 
     def __repr__(self):
-        return f"{self.name}: '{self.desc}' >> DEX: {self.dex} - INT: {self.int} - WIS: {self.wis} - EXP: {self.exp}"
+        return f"{self.name}: '{self.desc}'"
+
+    def get_stats(self):
+        return self.dex, self.int, self.wis # TODO: Make pretty print
 
 
 @dataclass
@@ -46,9 +52,10 @@ class Player:
     level: int
     current_room: "Room"
     items: List[Item] = field(default_factory=list)
+    exp_to_lvl_up: int = 10
 
     def move(self, direction):
-        print(f"Player {self.name} attempting to move {direction}")  # Debug print
+        logging.debug(f"Player {self.name} attempting to move {direction}")
         self.current_room.move_player(direction)
 
     def __str__(self):
@@ -63,56 +70,33 @@ class Player:
         )
 
     def __repr__(self):
-        return (
-            f"\n{Color.BU + self.name + Color.END}, "
-            f"{Color.BOLD + 'Lvl' + Color.END}: {Color.CYAN + str(self.level) + Color.END}"
-            f" {Color.BOLD + 'Exp' + Color.END}: {Color.GREEN + str(self.exp) + Color.END}\n"
-            f" {Color.BOLD + 'Backpack' + Color.END}: {self.items}\n"
-            f" {Color.BOLD + 'Dex' + Color.END}: {Color.YELLOW + str(self.dex) + Color.END}\n"
-            f" {Color.BOLD + 'Int' + Color.END}: {Color.BLUE + str(self.int) + Color.END}\n"
-            f" {Color.BOLD + 'Wis' + Color.END}: {Color.PURPLE + str(self.wis) + Color.END}"
-        )
+        return self.__str__()
 
     def add_item(self, item):
         self.items.append(item)
+        self.current_room.remove_item(item)
+        self.add_experience(item.exp)
 
-    def get_items(self):
-        return self.items
+    def add_experience(self, exp):
+        self.exp += exp
+        logging.debug(f"Player {self.name} gained {exp} experience points.")
+        if self.exp >= self.exp_to_lvl_up:
+            self.level_up()
 
-    def get_item_count(self):
-        return len(self.items)
-
-    def get_name(self):
-        return self.name
-
-    def get_level(self):
-        return self.level
-
-    def set_name(self, name):
-        self.name = name
-
-    def increase_stats(self, dexterity=0, intelligence=0, wisdom=0, experience=0):
-        self.dex += dexterity
-        self.int += intelligence
-        self.wis += wisdom
-        self.exp += experience
-
-    def increase_level(self):
+    def level_up(self):
         self.level += 1
-
-    def move(self, direction):
-        print(f"Player {self.name} attempting to move {direction}")  # Debug print
-        self.current_room.move_player(direction)
+        self.exp -= self.exp_to_lvl_up
+        logging.debug(f"Player {self.name} leveled up to level {self.level}!")
 
 
 @dataclass
 class Room:
     name: str
     desc: str
-    n_to: Optional["Room"] = None
-    s_to: Optional["Room"] = None
-    e_to: Optional["Room"] = None
-    w_to: Optional["Room"] = None
+    north: Optional["Room"] = None
+    south: Optional["Room"] = None
+    east: Optional["Room"] = None
+    west: Optional["Room"] = None
     items: List[Item] = field(default_factory=list)
     player: Optional[Player] = None
 
@@ -120,22 +104,20 @@ class Room:
         return f"{self.name}: '{self.desc}'"
 
     def __repr__(self):
-        return f"{self.name}: '{self.desc}'"
+        return self.__str__()
 
     def add_item(self, item):
         self.items.append(item)
 
     def remove_item(self, item):
-        self.items.remove(item)
+        if item in self.items:
+            logging.debug(f"Removing item {item.name} from room {self.name}")
+            self.items.remove(item)
+        else:
+            logging.error(f"Item {item.name} not found in room {self.name}")
 
     def get_items(self):
         return self.items
-
-    def get_room(self):
-        return self
-
-    def get_room_name(self):
-        return self.name
 
     def set_player(self, player):
         self.player = player
@@ -143,56 +125,35 @@ class Room:
     def get_player(self):
         return self.player
 
-    def get_room_desc(self):
-        return self.desc
-
     def get_connections(self):
         connections = []
-        if self.n_to is not None:
+        if self.north:
             connections.append("north")
-        if self.s_to is not None:
+        if self.south:
             connections.append("south")
-        if self.e_to is not None:
+        if self.east:
             connections.append("east")
-        if self.w_to is not None:
+        if self.west:
             connections.append("west")
         return connections
 
     def has_connection(self, direction):
-        if direction == "north" and self.n_to:
-            return True
-        elif direction == "south" and self.s_to:
-            return True
-        elif direction == "east" and self.e_to:
-            return True
-        elif direction == "west" and self.w_to:
-            return True
-        return False
+        return getattr(self, direction) is not None
 
     def move_player(self, direction):
-        if self.player is None:
-            print("No player in the room to move.")
+        if not self.player:
+            logging.error("No player in the room to move.")
             return
 
-        print(f"Attempting to move player {self.player.name} to the {direction}")  # Debug print
-        connections = self.get_connections()
-        if direction in connections:
-            if direction == "north" and self.n_to:
-                self.n_to.set_player(self.player)
-                self.player.current_room = self.n_to
-            elif direction == "south" and self.s_to:
-                self.s_to.set_player(self.player)
-                self.player.current_room = self.s_to
-            elif direction == "east" and self.e_to:
-                self.e_to.set_player(self.player)
-                self.player.current_room = self.e_to
-            elif direction == "west" and self.w_to:
-                self.w_to.set_player(self.player)
-                self.player.current_room = self.w_to
-            print(f"Player moved to {self.player.current_room.name}")  # Debug print
+        logging.debug(f"Attempting to move player {self.player.name} to the {direction}")
+        if self.has_connection(direction):
+            next_room = getattr(self, direction)
+            next_room.set_player(self.player)
+            self.player.current_room = next_room
+            logging.debug(f"Player moved to {self.player.current_room.name}")
             self.set_player(None)
         else:
-            print("You can't go that way.")
+            logging.error("You can't go that way.")
 
 
 # Initialization functions
@@ -222,95 +183,95 @@ def init_rooms():
 
 
 def init_room_connections(rooms):
-    rooms["whispering_willows"].e_to = rooms["mosaic_menagerie"]
-    rooms["whispering_willows"].s_to = rooms["verdant_vestibule"]
+    rooms["whispering_willows"].east = rooms["mosaic_menagerie"]
+    rooms["whispering_willows"].south = rooms["verdant_vestibule"]
 
-    rooms["mosaic_menagerie"].e_to = rooms["guardians_chamber"]
-    rooms["mosaic_menagerie"].s_to = rooms["runic_rotunda"]
-    rooms["mosaic_menagerie"].w_to = rooms["whispering_willows"]
+    rooms["mosaic_menagerie"].east = rooms["guardians_chamber"]
+    rooms["mosaic_menagerie"].south = rooms["runic_rotunda"]
+    rooms["mosaic_menagerie"].west = rooms["whispering_willows"]
 
-    rooms["guardians_chamber"].w_to = rooms["mosaic_menagerie"]
+    rooms["guardians_chamber"].west = rooms["mosaic_menagerie"]
 
-    rooms["verdant_vestibule"].n_to = rooms["whispering_willows"]
-    rooms["verdant_vestibule"].e_to = rooms["runic_rotunda"]
-    rooms["verdant_vestibule"].s_to = rooms["sunken_sanctuary"]
+    rooms["verdant_vestibule"].north = rooms["whispering_willows"]
+    rooms["verdant_vestibule"].east = rooms["runic_rotunda"]
+    rooms["verdant_vestibule"].south = rooms["sunken_sanctuary"]
 
-    rooms["runic_rotunda"].n_to = rooms["mosaic_menagerie"]
-    rooms["runic_rotunda"].e_to = rooms["forgotten_fountain"]
-    rooms["runic_rotunda"].w_to = rooms["verdant_vestibule"]
-    rooms["runic_rotunda"].s_to = rooms["overgrown_observatory"]
+    rooms["runic_rotunda"].north = rooms["mosaic_menagerie"]
+    rooms["runic_rotunda"].east = rooms["forgotten_fountain"]
+    rooms["runic_rotunda"].west = rooms["verdant_vestibule"]
+    rooms["runic_rotunda"].south = rooms["overgrown_observatory"]
 
-    rooms["forgotten_fountain"].w_to = rooms["runic_rotunda"]
-    rooms["forgotten_fountain"].s_to = rooms["echoing_arboretum"]
+    rooms["forgotten_fountain"].west = rooms["runic_rotunda"]
+    rooms["forgotten_fountain"].south = rooms["echoing_arboretum"]
 
-    rooms["sunken_sanctuary"].n_to = rooms["verdant_vestibule"]
-    rooms["sunken_sanctuary"].e_to = rooms["overgrown_observatory"]
+    rooms["sunken_sanctuary"].north = rooms["verdant_vestibule"]
+    rooms["sunken_sanctuary"].east = rooms["overgrown_observatory"]
 
-    rooms["overgrown_observatory"].w_to = rooms["sunken_sanctuary"]
-    rooms["overgrown_observatory"].n_to = rooms["runic_rotunda"]
-    rooms["overgrown_observatory"].e_to = rooms["echoing_arboretum"]
+    rooms["overgrown_observatory"].west = rooms["sunken_sanctuary"]
+    rooms["overgrown_observatory"].north = rooms["runic_rotunda"]
+    rooms["overgrown_observatory"].east = rooms["echoing_arboretum"]
 
-    rooms["echoing_arboretum"].w_to = rooms["overgrown_observatory"]
-    rooms["echoing_arboretum"].n_to = rooms["forgotten_fountain"]
+    rooms["echoing_arboretum"].west = rooms["overgrown_observatory"]
+    rooms["echoing_arboretum"].north = rooms["forgotten_fountain"]
 
 
 def init_items():
     items = {
         "enchanted_flute": Item(
-            "Enchanted Flute",
-            "A slender flute that plays haunting melodies when the wind blows.",
-            2,
-            0,
-            0,
-            10,
+            name="Enchanted Flute",
+            desc="A slender flute that plays haunting melodies when the wind blows.",
+            dex=2,
+            int=0,
+            wis=0,
+            exp=10,
         ),
         "prismatic_lens": Item(
-            "Prismatic Lens",
-            "A multifaceted lens that refracts light into a dazzling rainbow.",
-            0,
-            2,
-            0,
-            10,
+            name="Prismatic Lens",
+            desc="A multifaceted lens that refracts light into a dazzling rainbow.",
+            dex=0,
+            int=2,
+            wis=0,
+            exp=10,
         ),
         "magical_stylus": Item(
-            "Magical Stylus",
-            "A silver stylus that draws glowing runes in the air when used.",
-            0,
-            0,
-            2,
-            10,
+            name="Magical Stylus",
+            desc="A silver stylus that draws glowing runes in the air when used.",
+            dex=0,
+            int=0,
+            wis=2,
+            exp=10,
         ),
         "vial_of_glowing_water": Item(
-            "Vial of Glowing Water",
-            "A glass vial filled with water that glows with an inner light.",
-            1,
-            1,
-            1,
-            10,
+            name="Vial of Glowing Water",
+            desc="A glass vial filled with water that glows with an inner light.",
+            dex=1,
+            int=1,
+            wis=1,
+            exp=10,
         ),
         "weathered_stone_tablet": Item(
-            "Weathered Stone Tablet",
-            "A stone tablet etched with ancient runes and symbols.",
-            1,
-            1,
-            1,
-            10,
+            name="Weathered Stone Tablet",
+            desc="A stone tablet etched with ancient runes and symbols.",
+            dex=1,
+            int=1,
+            wis=1,
+            exp=10,
         ),
         "celestial_map": Item(
-            "Celestial Map",
-            "A map of the stars that reveals hidden constellations.",
-            1,
-            1,
-            1,
-            10,
+            name="Celestial Map",
+            desc="A map of the stars that reveals hidden constellations.",
+            dex=1,
+            int=1,
+            wis=1,
+            exp=10,
         ),
         "resonance_crystal": Item(
-            "Resonance Crystal",
-            "A crystal that hums with a mysterious energy when touched.",
-            1,
-            1,
-            1,
-            10,
+            name="Resonance Crystal",
+            desc="A crystal that hums with a mysterious energy when touched.",
+            dex=1,
+            int=1,
+            wis=1,
+            exp=10,
         ),
     }
     return items
@@ -334,30 +295,41 @@ def init_player_stats():
 
 
 def init_player(rooms):
+    # name = input("Hail Adventurer! Please enter your name: ")
+    name = "Donald J. Trump"
     starting_room = rooms["verdant_vestibule"]
     dex, int, wis = init_player_stats()
-    player1 = Player("Donald Trump", dex, int, wis, 0, 1, starting_room)
+    player1 = Player(name, dex, int, wis, 0, 1, starting_room)
     starting_room.set_player(player1)
     return player1
 
 
 def main():
+    # initialize rooms, items, and player
     rooms = init_rooms()
     init_room_connections(rooms)
+
     items = init_items()
     init_room_items(rooms, items)
+
     player = init_player(rooms)
+
+    # Test player/room/item interactions
+    logging.debug(player.current_room)
+    logging.debug(f'Available connections: {player.current_room.get_connections()}')
+    logging.debug(f'Items in room: {player.current_room.get_items()}')
+    player.move("east")
+    logging.debug(player.current_room)
+    logging.debug(f'Available connections: {player.current_room.get_connections()}')
+    logging.debug(f'Items in room: {player.current_room.get_items()}')
+    player.add_item(player.current_room.get_items()[0])
+    logging.debug(f'Items in room: {player.current_room.get_items()}')
+    player.move("east")
+    logging.debug(player.current_room)
+    logging.debug(f'Available connections: {player.current_room.get_connections()}')
+    logging.debug(f'Items in room: {player.current_room.get_items()}')
+    player.add_item(player.current_room.get_items()[0])
     print(player)
-
-    starting_room = rooms["verdant_vestibule"]
-    print(f"\nConnections from {starting_room.name}: {starting_room.get_connections()}")
-    if starting_room.get_player() is not None:
-        print(f"\nPlayer in starting room: {starting_room.get_player().name}")  # Debug print
-    else:
-        print("\nNo player in the starting room.")  # Debug print
-
-    player.move("north")
-    print(player.current_room.get_items())
 
 
 if __name__ == "__main__":
