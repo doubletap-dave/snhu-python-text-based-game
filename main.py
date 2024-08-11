@@ -38,7 +38,9 @@ class Color:
     BU = "\033[1m\033[4m"
     END = "\033[0m"
 
+
 c = Color()
+
 
 @dataclass
 class Item:
