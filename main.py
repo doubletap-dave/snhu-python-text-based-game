@@ -1,9 +1,8 @@
-__author__ = "Dave Mobley"
-__copyright__ = "Copyright 2024"
-__credits__ = ["Dave Mobley"]
-__license__ = "MIT"
-__version__ = "0.2.3"
-__maintainer__ = "Dave Mobley"
+"""
+Author: Dave Mobley
+Version: 0.2.4
+License: MIT
+"""
 
 
 from dataclasses import dataclass, field
@@ -24,6 +23,9 @@ logging.basicConfig(
 
 # Classes
 class Color:
+    """
+    A class to represent ANSI color codes for terminal text formatting.
+    """
     PURPLE = "\033[95m"
     CYAN = "\033[96m"
     DARKCYAN = "\033[36m"
@@ -36,12 +38,21 @@ class Color:
     BU = "\033[1m\033[4m"
     END = "\033[0m"
 
-
 c = Color()
-
 
 @dataclass
 class Item:
+    """
+    A class to represent an item in the game.
+
+    Attributes:
+    name (str): The name of the item.
+    desc (str): The description of the item.
+    dex (int): Dexterity stat provided by the item.
+    int (int): Intelligence stat provided by the item.
+    wis (int): Wisdom stat provided by the item.
+    exp (int): Experience points provided by the item.
+    """
     name: str
     desc: str
     dex: int
@@ -56,11 +67,31 @@ class Item:
         return f"{self.name}: '{self.desc}'"
 
     def get_stats(self):
+        """
+        Get the stats of the item.
+
+        Returns:
+        tuple: A tuple containing dex, int, and wis stats.
+        """
         return self.dex, self.int, self.wis
 
 
 @dataclass
 class Player:
+    """
+    A class to represent a player in the game.
+
+    Attributes:
+    name (str): The name of the player.
+    dex (int): Dexterity stat of the player.
+    int (int): Intelligence stat of the player.
+    wis (int): Wisdom stat of the player.
+    exp (int): Experience points of the player.
+    level (int): Level of the player.
+    current_room (Room): The current room the player is in.
+    items (List[Item]): List of items the player has.
+    exp_to_lvl_up (int): Experience points required to level up.
+    """
     name: str
     dex: int
     int: int
@@ -72,11 +103,16 @@ class Player:
     exp_to_lvl_up: int = 10
 
     def move(self, direction):
+        """
+        Move the player in the specified direction.
+
+        Parameters:
+        direction (str): The direction to move the player.
+        """
         logging.debug(f"Player {self.name} attempting to move {direction}")
         self.current_room.move_player(direction)
 
     def __str__(self):
-
         return (
             f"\n{c.BU + self.name + c.END}, "
             f"{c.BOLD + 'Lvl' + c.END}: {c.CYAN + str(self.level) + c.END}"
@@ -91,17 +127,32 @@ class Player:
         return self.__str__()
 
     def add_item(self, item):
+        """
+        Add an item to the player's inventory and remove it from the current room.
+
+        Parameters:
+        item (Item): The item to add.
+        """
         self.items.append(item)
         self.current_room.remove_item(item)
         self.add_experience(item.exp)
 
     def add_experience(self, exp):
+        """
+        Add experience points to the player.
+
+        Parameters:
+        exp (int): The amount of experience points to add.
+        """
         self.exp += exp
         print(f"\nYou ({c.BU + self.name + c.END}) gained {c.GREEN + str(exp) + c.END} experience points.")
         if self.exp >= self.exp_to_lvl_up:
             self.level_up()
 
     def level_up(self):
+        """
+        Level up the player.
+        """
         self.level += 1
         self.exp -= self.exp_to_lvl_up
         print(f"You ({c.BU + self.name + c.END}) leveled up to level {c.CYAN + str(self.level) + c.END}!\n")
@@ -109,6 +160,19 @@ class Player:
 
 @dataclass
 class Room:
+    """
+    A class to represent a room in the game.
+
+    Attributes:
+    name (str): The name of the room.
+    desc (str): The description of the room.
+    north (Optional[Room]): The room to the north.
+    south (Optional[Room]): The room to the south.
+    east (Optional[Room]): The room to the east.
+    west (Optional[Room]): The room to the west.
+    items (List[Item]): List of items in the room.
+    player (Optional[Player]): The player currently in the room.
+    """
     name: str
     desc: str
     north: Optional["Room"] = None
@@ -125,9 +189,21 @@ class Room:
         return self.__str__()
 
     def add_item(self, item):
+        """
+        Add an item to the room.
+
+        Parameters:
+        item (Item): The item to add.
+        """
         self.items.append(item)
 
     def remove_item(self, item):
+        """
+        Remove an item from the room.
+
+        Parameters:
+        item (Item): The item to remove.
+        """
         if item in self.items:
             logging.debug(f"Removing item {item.name} from room {self.name}")
             self.items.remove(item)
@@ -135,15 +211,39 @@ class Room:
             logging.error(f"Item {item.name} not found in room {self.name}")
 
     def get_items(self):
+        """
+        Get the list of items in the room.
+
+        Returns:
+        List[Item]: The list of items in the room.
+        """
         return self.items
 
     def set_player(self, player):
+        """
+        Set the player in the room.
+
+        Parameters:
+        player (Player): The player to set.
+        """
         self.player = player
 
     def get_player(self):
+        """
+        Get the player in the room.
+
+        Returns:
+        Optional[Player]: The player in the room.
+        """
         return self.player
 
     def get_connections(self):
+        """
+        Get the connections (directions) available from the room.
+
+        Returns:
+        List[str]: The list of available directions.
+        """
         connections = []
         if self.north:
             connections.append("north")
@@ -156,9 +256,24 @@ class Room:
         return connections
 
     def has_connection(self, direction):
+        """
+        Check if the room has a connection in the specified direction.
+
+        Parameters:
+        direction (str): The direction to check.
+
+        Returns:
+        bool: True if the room has a connection in the specified direction, False otherwise.
+        """
         return getattr(self, direction) is not None
 
     def move_player(self, direction):
+        """
+        Move the player in the specified direction.
+
+        Parameters:
+        direction (str): The direction to move the player.
+        """
         if not self.player:
             logging.error("No player in the room to move.")
             return
