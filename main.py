@@ -2,7 +2,7 @@ __author__ = "Dave Mobley"
 __copyright__ = "Copyright 2024"
 __credits__ = ["Dave Mobley"]
 __license__ = "MIT"
-__version__ = "0.1.7"
+__version__ = "0.2.0"
 __maintainer__ = "Dave Mobley"
 
 
@@ -84,7 +84,7 @@ class Player:
             f" {c.BOLD + 'Backpack' + c.END}: {self.items}\n"
             f" {c.BOLD + 'Dex' + c.END}: {c.YELLOW + str(self.dex) + c.END}\n"
             f" {c.BOLD + 'Int' + c.END}: {c.BLUE + str(self.int) + c.END}\n"
-            f" {c.BOLD + 'Wis' + c.END}: {c.PURPLE + str(self.wis) + c.END}"
+            f" {c.BOLD + 'Wis' + c.END}: {c.PURPLE + str(self.wis) + c.END}\n"
         )
 
     def __repr__(self):
@@ -97,14 +97,14 @@ class Player:
 
     def add_experience(self, exp):
         self.exp += exp
-        print(f"Player {c.BU + self.name + c.END} gained {c.GREEN + str(exp) + c.END} experience points.")
+        print(f"\nYou ({c.BU + self.name + c.END}) gained {c.GREEN + str(exp) + c.END} experience points.")
         if self.exp >= self.exp_to_lvl_up:
             self.level_up()
 
     def level_up(self):
         self.level += 1
         self.exp -= self.exp_to_lvl_up
-        print(f"Player {c.BU + self.name + c.END} leveled up to level {c.CYAN + str(self.level) + c.END}!\n")
+        print(f"You ({c.BU + self.name + c.END}) leveled up to level {c.CYAN + str(self.level) + c.END}!\n")
 
 
 @dataclass
@@ -399,7 +399,7 @@ def handle_easy_mode_input(player, boss_room, total_items):
         print(f'You enter the {player.current_room.name}, {player.current_room.desc}..')
         items = player.current_room.get_items()
         if items:
-            print(f'Items in this room: {items}\n')
+            print(f'\nItems in this room: {items}\n')
             for item in items:
                 player.add_item(item)
                 print(f"You picked up the {c.UL + item.name + c.END}.")
@@ -470,7 +470,7 @@ def pickup_item(player):
         print(f"{c.UL}There are no items in this room.{c.END}")
         return
 
-    print(f"{c.UL}Items in this room:{c.END}")
+    print(f"\n{c.UL}Items in this room:{c.END}")
     for item in items:
         print(item)
 
@@ -486,42 +486,17 @@ def pickup_item(player):
 
 def main():
     while True:
-        # initialize rooms, items, and player
-        rooms = init_rooms()
-        init_room_connections(rooms)
-
-        items = init_items()
-        init_room_items(rooms, items)
-
-        player = init_player(rooms)
-
-        # initialize game state
-        game_over = False
-        boss_room = rooms["guardians_chamber"]
-        total_items = len(items)
+        # Initialize game state
+        rooms, items, player, boss_room, total_items = initialize_game()
 
         # Print welcome message
-        print(f"\n{c.BOLD}Welcome {c.UL + player.name + c.END}! You find yourself in a mysterious land filled with "
-              f"magic and danger.{c.END}")
-        print(f"{c.BOLD}Your goal is to explore the world, discover its secrets, and grow in power and wisdom.{c.END}\n")
-        print("Use the commands 'north', 'south', 'east', and 'west' to move between rooms.")
-        print("Use the command 'get' to pick up items in a room.")
-        print("Use the command 'info' to view your character stats.")
-        print("Use the command 'help' to see a list of available commands.")
-        print("Use the command 'exit' to end the game.\n")
-
-        print("Press 'e' to enable easy mode (arrow keys or w/a/s/d to move, esc to exit).\n")
+        print_welcome_message(player)
 
         # Initialize game loop
         logging.debug("Starting game loop")
+        game_over = False
         while not game_over:
-            # Print current room description and display items
-            if not player.current_room.get_items():
-                print(f'You are in the {c.UL + player.current_room.name + c.END}, {c.UL + player.current_room.desc + c.END}..')
-                print("There are no items in this room.\n")
-            else:
-                print(player.current_room)
-                print(f'Items in this room: {c.UL + player.current_room.get_items() + c.END}\n')
+            print_current_room(player)
 
             # Handle player input
             if handle_user_input(player, boss_room, total_items):
@@ -533,10 +508,46 @@ def main():
                 game_over = True
 
         # Ask the player if they want to play again
-        play_again = input("Do you want to play again? (yes/no): ").strip().lower()
-        if play_again != 'yes':
+        if not ask_play_again():
             print("Thank you for playing! Goodbye!")
             break
+
+
+def initialize_game():
+    rooms = init_rooms()
+    init_room_connections(rooms)
+    items = init_items()
+    init_room_items(rooms, items)
+    player = init_player(rooms)
+    boss_room = rooms["guardians_chamber"]
+    total_items = len(items)
+    return rooms, items, player, boss_room, total_items
+
+
+def print_welcome_message(player):
+    print(f"\nWelcome {c.BU + player.name + c.END}! You find yourself in a mysterious land filled with "
+          f"magic and danger.")
+    print(f"{c.BOLD}Your goal is to explore the world, discover its secrets, and grow in power and wisdom.{c.END}\n")
+    print("Use the commands 'north', 'south', 'east', and 'west' to move between rooms.")
+    print("Use the command 'get' to pick up items in a room.")
+    print("Use the command 'info' to view your character stats.")
+    print("Use the command 'help' to see a list of available commands.")
+    print("Use the command 'exit' to end the game.\n")
+    print("Press 'e' to enable easy mode (arrow keys or w/a/s/d to move, esc to exit).\n")
+
+
+def print_current_room(player):
+    if not player.current_room.get_items():
+        print(f'You are in the {c.BOLD + player.current_room.name + c.END}, {player.current_room.desc}')
+        print("There are no items in this room.\n")
+    else:
+        print(f'\nYou are in the {player.current_room}')
+        print(f'Items in this room: {player.current_room.get_items()[0]}\n')
+
+
+def ask_play_again():
+    play_again = input("Do you want to play again? (yes/no): ").strip().lower()
+    return play_again == 'yes'
 
 
 if __name__ == "__main__":
