@@ -2,7 +2,7 @@ __author__ = "Dave Mobley"
 __copyright__ = "Copyright 2024"
 __credits__ = ["Dave Mobley"]
 __license__ = "MIT"
-__version__ = "0.2.1"
+__version__ = "0.2.3"
 __maintainer__ = "Dave Mobley"
 
 
@@ -56,7 +56,7 @@ class Item:
         return f"{self.name}: '{self.desc}'"
 
     def get_stats(self):
-        return self.dex, self.int, self.wis # TODO: Make pretty print
+        return self.dex, self.int, self.wis
 
 
 @dataclass
@@ -170,7 +170,6 @@ class Room:
             self.player.current_room = next_room
             logging.debug(f"Player moved to {self.player.current_room.name}")
             self.set_player(None)
-            # print(next_room)  # Print room information when player enters a new room
         else:
             logging.error("You can't go that way.")
 
@@ -379,17 +378,6 @@ def handle_user_input(player, boss_room, total_items):
 
 
 def handle_easy_mode_input(player, boss_room, total_items):
-    """
-    Handle user input for player actions in easy mode.
-
-    Parameters:
-    player (Player): The player object.
-    boss_room (Room): The boss room object.
-    total_items (int): Total number of items in the game.
-
-    Returns:
-    None
-    """
     no_items_message_printed = False
     last_room = player.current_room
     help_message_printed = False
@@ -412,9 +400,9 @@ def handle_easy_mode_input(player, boss_room, total_items):
     def check_boss_room():
         if player.current_room == boss_room:
             if len(player.items) < total_items:
-                print("\nYou have entered the boss room without all the items. Game Over!")
+                print("You have entered the boss room without all the items and are too weak. Game Over!\n")
             else:
-                print("\nCongratulations! You have entered the boss room with all the items. You win!")
+                print("Congratulations! You have defeated the Ancient Golum. You win!\n")
             return True
         return False
 
@@ -539,10 +527,10 @@ def print_welcome_message(player):
 def print_current_room(player):
     if not player.current_room.get_items():
         print(f'You are in the {c.BOLD + player.current_room.name + c.END}, {player.current_room.desc}')
-        print("There are no items in this room.\n")
+        print("There are no items in this room.")
     else:
         print(f'\nYou are in the {player.current_room}')
-        print(f'Items in this room: {player.current_room.get_items()[0]}\n')
+        print(f'Items in this room: {player.current_room.get_items()[0]}')
 
 
 def ask_play_again():
