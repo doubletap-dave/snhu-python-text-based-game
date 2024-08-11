@@ -2,7 +2,7 @@ __author__ = "Dave Mobley"
 __copyright__ = "Copyright 2024"
 __credits__ = ["Dave Mobley"]
 __license__ = "MIT"
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __maintainer__ = "Dave Mobley"
 
 
