@@ -2,7 +2,7 @@ __author__ = "Dave Mobley"
 __copyright__ = "Copyright 2024"
 __credits__ = ["Dave Mobley"]
 __license__ = "MIT"
-__version__ = "0.1.5"
+__version__ = "0.1.7"
 __maintainer__ = "Dave Mobley"
 
 
@@ -32,7 +32,7 @@ class Color:
     YELLOW = "\033[93m"
     RED = "\033[91m"
     BOLD = "\033[1m"
-    UNDERLINE = "\033[4m"
+    UL = "\033[4m"
     BU = "\033[1m\033[4m"
     END = "\033[0m"
 
@@ -97,14 +97,14 @@ class Player:
 
     def add_experience(self, exp):
         self.exp += exp
-        print(f"Player {self.name} gained {exp} experience points.")
+        print(f"Player {c.BU + self.name + c.END} gained {c.GREEN + str(exp) + c.END} experience points.")
         if self.exp >= self.exp_to_lvl_up:
             self.level_up()
 
     def level_up(self):
         self.level += 1
         self.exp -= self.exp_to_lvl_up
-        print(f"Player {self.name} leveled up to level {self.level}!")
+        print(f"Player {c.BU + self.name + c.END} leveled up to level {c.CYAN + str(self.level) + c.END}!\n")
 
 
 @dataclass
@@ -314,11 +314,30 @@ def init_player_stats():
 
 
 def init_player(rooms):
-    # name = input("Hail Adventurer! Please enter your name: ")
-    name = "Donald J. Trump"
+    # Prompt the player to enter their name
+    name = input("Hail Adventurer! Please enter your name: ").strip()
+
+    # List of adventure-sounding titles
+    titles = [
+        "the Brave",
+        "the Bold",
+        "the Fearless",
+        "the Mighty",
+        "the Wise",
+        "the Swift",
+        "the Valiant",
+        "the Conqueror",
+        "the Explorer",
+        "the Heroic"
+    ]
+
+    # Randomly select a title and append it to the player's name
+    title = random.choice(titles)
+    full_name = f"{name} {title}"
+
     starting_room = rooms["verdant_vestibule"]
     dex, int, wis = init_player_stats()
-    player = Player(name, dex, int, wis, 0, 1, starting_room)
+    player = Player(full_name, dex, int, wis, 0, 1, starting_room)
     starting_room.set_player(player)
     return player
 
@@ -346,11 +365,16 @@ def handle_user_input(player, boss_room, total_items):
         print("Exiting game. Goodbye!")
         exit()
     elif action == "e":
-        print("Easy mode activated. Use arrow keys or w/a/s/d to move, esc to exit.")
+        print(f"\n{c.BU}Easy mode activated.{c.END} Use {c.UL}arrow keys{c.END} or {c.UL}w/a/s/d{c.END} to move, {c.UL}esc{c.END} to exit.")
+        print(f'\nYou are still in the {player.current_room.name}, {player.current_room.desc}..')
         handle_easy_mode_input(player, boss_room, total_items)
         return True
+    elif action == "info":
+        print(player)
+    elif action == "help":
+        print("Available commands: 'north', 'south', 'east', 'west', 'get', 'exit', 'info', 'help', 'e' (easy mode)")
     else:
-        print("Invalid command. Please enter 'north', 'south', 'east', 'west', 'get', 'exit', or 'e'.")
+        print("Invalid command. Please enter 'north', 'south', 'east', 'west', 'get', 'exit', 'info', 'help', or 'e'.")
     return False
 
 
@@ -367,36 +391,63 @@ def handle_easy_mode_input(player, boss_room, total_items):
     None
     """
     no_items_message_printed = False
+    last_room = player.current_room
+    help_message_printed = False
 
-    while True:
-        if keyboard.is_pressed('up') or keyboard.is_pressed('w'):
-            player.move('north')
-        elif keyboard.is_pressed('down') or keyboard.is_pressed('s'):
-            player.move('south')
-        elif keyboard.is_pressed('left') or keyboard.is_pressed('a'):
-            player.move('west')
-        elif keyboard.is_pressed('right') or keyboard.is_pressed('d'):
-            player.move('east')
-        elif keyboard.is_pressed('esc'):
-            print("Exiting easy mode. Goodbye!")
-            exit()
-
-        # Automatically pick up items in the current room
+    def print_room_info():
+        nonlocal no_items_message_printed
+        print(f'You enter the {player.current_room.name}, {player.current_room.desc}..')
         items = player.current_room.get_items()
         if items:
+            print(f'Items in this room: {items}\n')
             for item in items:
                 player.add_item(item)
-                print(f"You picked up the {item.name}.")
+                print(f"You picked up the {c.UL + item.name + c.END}.")
             no_items_message_printed = False  # Reset the flag when items are picked up
         else:
             if not no_items_message_printed:
-                print("There are no items in this room.")
+                print("There are no items in this room.\n")
                 no_items_message_printed = True  # Set the flag to prevent repeated messages
 
-        # Check if player is in the boss room without all items
-        if player.current_room == boss_room and len(player.items) < total_items:
-            print("You have entered the boss room without all the items. Game Over!")
-            break
+    def check_boss_room():
+        if player.current_room == boss_room:
+            if len(player.items) < total_items:
+                print("\nYou have entered the boss room without all the items. Game Over!")
+            else:
+                print("\nCongratulations! You have entered the boss room with all the items. You win!")
+            return True
+        return False
+
+    while True:
+        moved = False
+        if keyboard.is_pressed('up') or keyboard.is_pressed('w'):
+            player.move('north')
+            moved = True
+        elif keyboard.is_pressed('down') or keyboard.is_pressed('s'):
+            player.move('south')
+            moved = True
+        elif keyboard.is_pressed('left') or keyboard.is_pressed('a'):
+            player.move('west')
+            moved = True
+        elif keyboard.is_pressed('right') or keyboard.is_pressed('d'):
+            player.move('east')
+            moved = True
+        elif keyboard.is_pressed('esc'):
+            print("Exiting easy mode. Goodbye!")
+            exit()
+        elif keyboard.is_pressed('i'):
+            print(player)
+        elif keyboard.is_pressed('h') and not help_message_printed:
+            print("Available commands: arrow keys or w/a/s/d to move, 'i' for info, 'h' for help, 'esc' to exit.")
+            help_message_printed = True
+
+        if moved or player.current_room != last_room:
+            last_room = player.current_room
+            help_message_printed = False  # Reset the flag when the player moves to a new room
+            print_room_info()
+
+            if check_boss_room():
+                break
 
         # Add a small delay to prevent infinite loop
         time.sleep(0.1)
@@ -416,10 +467,10 @@ def pickup_item(player):
     items = room.get_items()
 
     if not items:
-        print("There are no items in this room.")
+        print(f"{c.UL}There are no items in this room.{c.END}")
         return
 
-    print("Items in this room:")
+    print(f"{c.UL}Items in this room:{c.END}")
     for item in items:
         print(item)
 
@@ -427,57 +478,65 @@ def pickup_item(player):
     for item in items:
         if item_name == item.name.lower():
             player.add_item(item)
-            print(f"You picked up the {item.name}.")
+            print(f"\nYou picked up the {c.UL + item.name + c.END}.")
             return
 
     print("That item is not in this room.")
 
 
 def main():
-    # initialize rooms, items, and player
-    rooms = init_rooms()
-    init_room_connections(rooms)
+    while True:
+        # initialize rooms, items, and player
+        rooms = init_rooms()
+        init_room_connections(rooms)
 
-    items = init_items()
-    init_room_items(rooms, items)
+        items = init_items()
+        init_room_items(rooms, items)
 
-    player = init_player(rooms)
+        player = init_player(rooms)
 
-    # initialize game state
-    game_over = False
-    boss_room = rooms["guardians_chamber"]
-    total_items = len(items)
+        # initialize game state
+        game_over = False
+        boss_room = rooms["guardians_chamber"]
+        total_items = len(items)
 
-    # Print welcome message
-    print("\nWelcome adventurer! You find yourself in a mysterious land filled with magic and danger.")
-    print("Your goal is to explore the world, discover its secrets, and grow in power and wisdom.\n")
-    print("Use the commands 'north', 'south', 'east', and 'west' to move between rooms.")
-    print("Use the command 'get' to pick up items in a room.")
-    print("Use the command 'exit' to end the game.\n")
-    print("Press 'e' to enable easy mode (arrow keys or w/a/s/d to move, esc to exit).\n")
+        # Print welcome message
+        print(f"\n{c.BOLD}Welcome {c.UL + player.name + c.END}! You find yourself in a mysterious land filled with "
+              f"magic and danger.{c.END}")
+        print(f"{c.BOLD}Your goal is to explore the world, discover its secrets, and grow in power and wisdom.{c.END}\n")
+        print("Use the commands 'north', 'south', 'east', and 'west' to move between rooms.")
+        print("Use the command 'get' to pick up items in a room.")
+        print("Use the command 'info' to view your character stats.")
+        print("Use the command 'help' to see a list of available commands.")
+        print("Use the command 'exit' to end the game.\n")
 
-    # Initialize game loop
-    logging.debug("Starting game loop")
-    while not game_over:
-        # Print current room description and display items
-        # print(player.current_room)
+        print("Press 'e' to enable easy mode (arrow keys or w/a/s/d to move, esc to exit).\n")
 
-        # If there are no items in the room, alert the player
-        if not player.current_room.get_items():
-            print(f'You enter the {player.current_room.name}, {player.current_room.desc}..')
-            print("There are no items in this room.\n")
-        else:
-            print(player.current_room)
-            print(f'Items in this room: {player.current_room.get_items()}\n')
+        # Initialize game loop
+        logging.debug("Starting game loop")
+        while not game_over:
+            # Print current room description and display items
+            if not player.current_room.get_items():
+                print(f'You are in the {c.UL + player.current_room.name + c.END}, {c.UL + player.current_room.desc + c.END}..')
+                print("There are no items in this room.\n")
+            else:
+                print(player.current_room)
+                print(f'Items in this room: {c.UL + player.current_room.get_items() + c.END}\n')
 
-        # Handle player input
-        if handle_user_input(player, boss_room, total_items):
+            # Handle player input
+            if handle_user_input(player, boss_room, total_items):
+                break
+
+            # Check if player is in the boss room without all items
+            if player.current_room == boss_room and len(player.items) < total_items:
+                print("\nYou have entered the boss room without collecting all the items, and were eaten! Game Over!")
+                game_over = True
+
+        # Ask the player if they want to play again
+        play_again = input("Do you want to play again? (yes/no): ").strip().lower()
+        if play_again != 'yes':
+            print("Thank you for playing! Goodbye!")
             break
-
-        # Check if player is in the boss room without all items
-        if player.current_room == boss_room and len(player.items) < total_items:
-            print("You have entered the boss room without all the items. Game Over!")
-            game_over = True
 
 
 if __name__ == "__main__":
