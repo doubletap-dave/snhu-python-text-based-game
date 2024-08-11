@@ -460,7 +460,7 @@ def init_player(rooms):
 
 # Game logic functions
 
-def handle_user_input(player, boss_room, total_items):
+def user_input(player, boss_room, total_items):
     """
     Handle user input for player actions.
 
@@ -483,7 +483,7 @@ def handle_user_input(player, boss_room, total_items):
     elif action == "e":
         print(f"\n{c.BU}Easy mode activated.{c.END} Use {c.UL}arrow keys{c.END} or {c.UL}w/a/s/d{c.END} to move, {c.UL}esc{c.END} to exit.")
         print(f'\nYou are still in the {player.current_room.name}, {player.current_room.desc}..')
-        handle_easy_mode_input(player, boss_room, total_items)
+        easy_mode(player, boss_room, total_items)
         return True
     elif action == "info":
         print(player)
@@ -494,7 +494,7 @@ def handle_user_input(player, boss_room, total_items):
     return False
 
 
-def handle_easy_mode_input(player, boss_room, total_items):
+def easy_mode(player, boss_room, total_items):
     no_items_message_printed = False
     last_room = player.current_room
     help_message_printed = False
@@ -604,7 +604,7 @@ def main():
             print_current_room(player)
 
             # Handle player input
-            if handle_user_input(player, boss_room, total_items):
+            if user_input(player, boss_room, total_items):
                 break
 
             # Check if player is in the boss room without all items
