@@ -4,7 +4,6 @@ Version: 0.2.4
 License: MIT
 """
 
-
 from dataclasses import dataclass, field
 from typing import List, Optional
 
@@ -14,8 +13,7 @@ import random
 import time
 
 # Configure logging
-logging.basicConfig(
-    filename='game.log',
+logging.basicConfig(    filename='game.log',
     level=logging.DEBUG,
     format='%(asctime)s [%(levelname)s] %(message)s'
 )

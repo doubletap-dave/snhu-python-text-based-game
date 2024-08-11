@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from main import init_player, Player, Room, init_rooms, init_room_connections, init_items, init_room_items
+from main import init_rooms, init_player, Player, Room, init_room_connections, init_items, init_room_items
+
 
 class TestGame(unittest.TestCase):
 
@@ -42,6 +43,7 @@ class TestGame(unittest.TestCase):
         player.add_experience(1)
         self.assertEqual(player.level, 2)
         self.assertEqual(player.exp, 0)
+
 
 if __name__ == '__main__':
     unittest.main()
